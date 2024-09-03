@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Leak";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Leak</h1>
+    <p>
+        <a asp-controller="Leak" asp-action="LeakConnections" class="btn btn-primary">Leak Connections</a>
+    </p>
+    <p>
+        <a asp-controller="Leak" asp-action="LeakThreads" class="btn btn-secondary">Leak Threads</a>
+    </p>
+    <p>
+        <a asp-controller="Leak" asp-action="LeakMemory" class="btn btn-danger">Leak Memory</a>
+    </p>
+</div>
