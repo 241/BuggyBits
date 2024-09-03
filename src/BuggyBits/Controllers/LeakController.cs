@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Collections.Generic;
+using System.Net;
 
 namespace BuggyBits.Controllers
 {
@@ -13,6 +14,8 @@ namespace BuggyBits.Controllers
         private static int _callCount = 0;
         private static int _threadCount = 0;
         private static List<byte[]> _memoryLeaks = new List<byte[]>();
+        private static List<int> _allocatedSizes = new List<int>();
+        private static long _totalMemoryLeaks = 0;
 
         [HttpGet]
         public IActionResult Index()
@@ -35,12 +38,12 @@ namespace BuggyBits.Controllers
 
             _callCount++;
 
-            // Buggy code: HttpClient is not disposed
-            HttpClient client = new HttpClient();
-            client.GetAsync("https://www.bing.com").GetAwaiter().GetResult();
+            // Buggy code: WebClient is not disposed
+            WebClient client = new WebClient();
+            var response = client.DownloadString("https://www.bing.com");
 
-            // Wait for 1 second before making the next request
-            Thread.Sleep(1000);
+            // Wait for 100 ms before making the next request
+            Thread.Sleep(100);
             Console.WriteLine($"Request {_callCount} completed");
             // Recursive call
             MakeRequest();
@@ -67,6 +70,7 @@ namespace BuggyBits.Controllers
             // Create a new thread
             Thread newThread = new Thread(() =>
             {
+
                 // Simulate some work
                 Thread.Sleep(100000); // Sleep for 10 seconds
             });
@@ -81,11 +85,22 @@ namespace BuggyBits.Controllers
         [HttpGet("LeakMemory")]
         public IActionResult LeakMemory()
         {
-            // Allocate 100 MB of memory
-            byte[] memoryLeak = new byte[100 * 1024 * 1024];
-            _memoryLeaks.Add(memoryLeak);
+            // Generate a random size between 85KB and 100MB
+            Random random = new Random();
+            int size = random.Next(85 * 1024, 100 * 1024 * 1024);
 
-            Console.WriteLine($"Allocated 100 MB, total leaks: {_memoryLeaks.Count * 100} MB");
+            // Allocate memory with the generated size
+            byte[] memoryLeak = new byte[size];
+            _memoryLeaks.Add(memoryLeak);
+            _allocatedSizes.Add(size);
+            _totalMemoryLeaks += size;
+
+            // Log the size of the created array and the total memory leaks
+            Console.WriteLine($"Allocated {size / 1024.0 / 1024.0:F2} MB, total leaks: {_totalMemoryLeaks / 1024.0 / 1024.0:F2} MB");
+
+            // Pass the allocated sizes and total memory leaks to the view
+            ViewBag.AllocatedSizes = _allocatedSizes;
+            ViewBag.TotalMemoryLeaks = _totalMemoryLeaks;
 
             return View("LeakMemory");
         }

@@ -3,12 +3,30 @@
 *@
 @{
     ViewData["Title"] = "Leak Memory";
+    var allocatedSizes = ViewBag.AllocatedSizes as List<int>;
+    var totalMemoryLeaks = ViewBag.TotalMemoryLeaks;
 }
 
 <h2>Leak Memory</h2>
 
-<p>Each call to this page generates a 100 MB memory leak.</p>
+<p>Each call to this page generates a random memory leak between 85KB and 100MB.</p>
 
 <form method="get" action="/Leak/LeakMemory">
     <button type="submit">Generate Memory Leak</button>
 </form>
+
+@if (totalMemoryLeaks != null)
+{
+    <p>Total Memory Leaks: @string.Format("{0:0.00} MB", totalMemoryLeaks / 1024.0 / 1024.0)</p>
+}
+
+@if (allocatedSizes != null && allocatedSizes.Count > 0)
+{
+    <h3>Allocated Sizes</h3>
+    <ul>
+        @foreach (var size in allocatedSizes)
+        {
+            <li>@string.Format("{0:0.00} MB", size / 1024.0 / 1024.0)</li>
+        }
+    </ul>
+}
